@@ -86,18 +86,18 @@ def main():
     y = xp.zeros((batch_size * iteration, 10), dtype=np.float32)
     z = xp.zeros((batch_size * iteration, 10), dtype=np.float32)
     print('Normal chainer.function call')
-    start_clock = time.clock()
     with chainer.no_backprop_mode():
+        start_clock = time.clock()
         for i in six.moves.xrange(0, batch_size * iteration, batch_size):
-            y = net(x[i:i + batch_size], train=False)
-    print(time.clock() - start_clock)
+            y[i:i + batch_size] = net(xp.asarray(x[i:i + batch_size]), train=False).data
+        print(time.clock() - start_clock)
     print('Direct chainer.function call')
     start_clock = time.clock()
     for i in six.moves.xrange(0, batch_size * iteration, batch_size):
-            z = net.forward(x[i:i + batch_size], train=False)
+        z[i:i + batch_size] = net.forward(xp.asarray(x[i:i + batch_size]), train=False)
     print(time.clock() - start_clock)
     print('Diff')
-    print(xp.mean((z - y.data) ** 2) ** 0.5)
+    print(xp.mean((z - y) ** 2) ** 0.5)
 
 if __name__ == '__main__':
     main()
