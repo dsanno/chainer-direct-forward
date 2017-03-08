@@ -85,17 +85,18 @@ def main():
     x = xp.random.random((batch_size * iteration, 1, 28, 28)).astype(np.float32)
     y = xp.zeros((batch_size * iteration, 10), dtype=np.float32)
     z = xp.zeros((batch_size * iteration, 10), dtype=np.float32)
+    print('Direct chainer.function call')
+    net(x[0:1], train=False) # First forward propagation takes long time, so call once in advance
+    start_clock = time.clock()
+    for i in six.moves.xrange(0, batch_size * iteration, batch_size):
+        z[i:i + batch_size,:] = net.forward(x[i:i + batch_size], train=False)
+    print(time.clock() - start_clock)
     print('Normal chainer.function call')
     with chainer.no_backprop_mode():
         start_clock = time.clock()
         for i in six.moves.xrange(0, batch_size * iteration, batch_size):
-            y[i:i + batch_size] = net(xp.asarray(x[i:i + batch_size]), train=False).data
+            y[i:i + batch_size,:] = net(x[i:i + batch_size], train=False).data
         print(time.clock() - start_clock)
-    print('Direct chainer.function call')
-    start_clock = time.clock()
-    for i in six.moves.xrange(0, batch_size * iteration, batch_size):
-        z[i:i + batch_size] = net.forward(xp.asarray(x[i:i + batch_size]), train=False)
-    print(time.clock() - start_clock)
     print('Diff')
     print(xp.mean((z - y) ** 2) ** 0.5)
 
